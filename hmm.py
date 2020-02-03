@@ -86,9 +86,6 @@ class HMM:
 
         return (np.array(states), np.array(symbols))
 
-    def _fwd_alpha(t, i):
-        pass
-
     def _symbol_idx(self, symbol):
         where_res = np.where(self.y == symbol)
         assert len(where_res) == 1

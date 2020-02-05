@@ -1,0 +1,2 @@
+#!/bin/bash
+docker run -it --rm --gpus all -p 8888:8888 -v $(pwd):/tf/ samchatfield/tf-gpu

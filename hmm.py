@@ -117,6 +117,21 @@ class HMM:
         return alpha.sum()
 
 
+def random_hmm(x=2, y='abc', s=[1.0, 0.0]):
+    # Take X, Y and S as parameters
+    # Generate random A and B (transition and emission matrices)
+    # Return constructed instance of HMM
+    rand_x = x
+    rand_y = np.array(list(y))
+    rand_a = np.random.dirichlet(np.ones(x), x)
+    rand_b = np.random.dirichlet(np.ones(rand_y.size), x)
+    rand_s = np.array(s)
+
+    rand_hmm = HMM(rand_x, rand_y, rand_a, rand_b, rand_s)
+
+    return rand_hmm
+
+
 def main(steps):
     h = HMM()
     l = h.simulate(steps)

@@ -2,9 +2,9 @@ from keras.models import Sequential
 from keras.layers import Conv1D, Conv2D, Activation, Dense, GlobalMaxPooling1D, MaxPooling1D
 
 
-def CNNModel():
+def CNNModel(input_shape):
     model = Sequential([
-        Conv1D(4, (3), input_shape=(10, 3)),
+        Conv1D(4, (3), input_shape=input_shape),
         Activation('relu'),
         GlobalMaxPooling1D(),
         Dense(16),
@@ -20,9 +20,9 @@ def CNNModel():
     return model
 
 
-def CNNModel2():
+def CNNModel2(input_shape):
     model = Sequential([
-        Conv1D(4, (3), input_shape=(10, 3)),
+        Conv1D(4, (3), input_shape=input_shape),
         Activation('relu'),
         MaxPooling1D(),
         Conv1D(8, (3)),

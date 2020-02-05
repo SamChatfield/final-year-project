@@ -1,0 +1,7 @@
+name: fyp
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+prefix: /Users/sam/anaconda3/envs/fyp
+

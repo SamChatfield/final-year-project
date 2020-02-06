@@ -82,9 +82,13 @@ class HMMDataGenerator(keras.utils.Sequence):
             num_classes=len(self._symbols)
         )
         return onehot
-    
+
     def input_shape(self):
         return (self._seq_len, len(self._symbols))
+
+
+def plot_model(model, to_file):
+    return keras.utils.plot_model(model, to_file=to_file, show_shapes=True)
 
 
 def plot_acc(history):

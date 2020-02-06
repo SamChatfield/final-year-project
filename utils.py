@@ -91,27 +91,39 @@ def plot_model(model, to_file):
     return keras.utils.plot_model(model, to_file=to_file, show_shapes=True)
 
 
-def plot_acc(history, val=False):
+def plot_acc(history, to_file=None, val=False):
     plt.plot(history.history['accuracy'])
     if val: plt.plot(history.history['val_accuracy'])
+
     plt.title('Model Accuracy')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
+
     if val:
-        plt.legend(['Train', 'Val'], loc='upper left')
+        plt.legend(['Train', 'Val'], loc='center right')
     else:
-        plt.legend(['Train'], loc='upper left')
+        plt.legend(['Train'], loc='center right')
+    
+    if to_file:
+        plt.savefig(to_file)
+    
     plt.show()
 
 
-def plot_loss(history, val=False):
+def plot_loss(history, to_file=None, val=False):
     plt.plot(history.history['loss'])
     if val: plt.plot(history.history['val_loss'])
+
     plt.title('Model Loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
+
     if val:
-        plt.legend(['Train', 'Val'], loc='upper left')
+        plt.legend(['Train', 'Val'], loc='center right')
     else:
-        plt.legend(['Train'], loc='upper left')
+        plt.legend(['Train'], loc='center right')
+
+    if to_file:
+        plt.savefig(to_file)
+
     plt.show()

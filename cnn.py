@@ -1,5 +1,6 @@
+from keras.layers import (Activation, Conv1D, Conv2D, Dense,
+                          GlobalMaxPooling1D, MaxPooling1D)
 from keras.models import Sequential
-from keras.layers import Conv1D, Conv2D, Activation, Dense, GlobalMaxPooling1D, MaxPooling1D
 
 
 def CNNModel(input_shape):

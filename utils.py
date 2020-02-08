@@ -93,7 +93,8 @@ def plot_model(model, to_file):
 
 def plot_acc(history, to_file=None, val=False):
     plt.plot(history.history['accuracy'])
-    if val: plt.plot(history.history['val_accuracy'])
+    if val:
+        plt.plot(history.history['val_accuracy'])
 
     plt.title('Model Accuracy')
     plt.ylabel('Accuracy')
@@ -103,16 +104,17 @@ def plot_acc(history, to_file=None, val=False):
         plt.legend(['Train', 'Val'], loc='center right')
     else:
         plt.legend(['Train'], loc='center right')
-    
+
     if to_file:
         plt.savefig(to_file)
-    
+
     plt.show()
 
 
 def plot_loss(history, to_file=None, val=False):
     plt.plot(history.history['loss'])
-    if val: plt.plot(history.history['val_loss'])
+    if val:
+        plt.plot(history.history['val_loss'])
 
     plt.title('Model Loss')
     plt.ylabel('Loss')
@@ -127,3 +129,14 @@ def plot_loss(history, to_file=None, val=False):
         plt.savefig(to_file)
 
     plt.show()
+
+
+def callbacks(model_name):
+    model_checkpoint_cb = keras.callbacks.ModelCheckpoint(
+        f'models/weights-{model_name}.h5',
+        monitor='loss',
+        save_best_only=True,
+        save_weights_only=True
+    )
+
+    return [model_checkpoint_cb]

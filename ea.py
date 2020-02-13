@@ -16,7 +16,7 @@ POP_SIZE = 10
 
 def ind_str(ind):
     t, e = ind
-    return f'{t}\n{e}\n{ind.fitness}'
+    return f'{t}\n{e}\nFitness: {ind.fitness}'
 
 
 def evaluate(ind):
@@ -114,6 +114,12 @@ def main():
     mut1, = toolbox.mutate(ind1)
     print(f'Mut 1:\n{mut1[0]}\n{mut1[1]}\n')
 
+    stats = tools.Statistics(key=lambda ind: ind.fitness.values)
+    stats.register("avg", np.mean)
+    # stats.register("std", np.std)
+    # stats.register("min", np.min)
+    stats.register("max", np.max)
+
     final_pop, _ = algorithms.eaMuPlusLambda(
         pop,
         toolbox,
@@ -122,6 +128,7 @@ def main():
         cxpb=0.0,
         mutpb=1.0,
         ngen=50,
+        stats=stats,
         verbose=True
     )
 

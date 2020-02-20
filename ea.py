@@ -53,7 +53,11 @@ def crossover(ind1, ind2):
     pass
 
 
-def setup_toolbox(toolbox):
+def setup_toolbox(toolbox, pool=None):
+    # Register map to use multiprocessing pool
+    if pool:
+        toolbox.register("map", pool.map)
+
     # Transition matrix generation
     toolbox.register("trans_mat", np.random.dirichlet, np.ones(STATES), STATES)
     # Emission matrix generation
@@ -85,15 +89,13 @@ def main():
     # Individual is 2-tuple of (transition, emission) ndarrays
     creator.create("Individual", tuple, fitness=creator.FitnessMax)
 
-    # Init toolbox
-    toolbox = base.Toolbox()
-
     # Set up multiprocessing pool
     pool = multiprocessing.Pool(processes=POOL_SIZE)
-    toolbox.register("map", pool.map)
 
+    # Init toolbox
+    toolbox = base.Toolbox()
     # Complete toolbox setup
-    setup_toolbox(toolbox)
+    setup_toolbox(toolbox, pool=pool)
 
     # Create initial population
     pop = toolbox.population(n=POP_SIZE)

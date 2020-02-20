@@ -53,82 +53,89 @@ def crossover(ind1, ind2):
     pass
 
 
-def setup_toolbox(toolbox, pool=None):
-    # Register map to use multiprocessing pool
-    if pool:
-        toolbox.register("map", pool.map)
+class EA:
+    # pylint: disable=no-member
 
-    # Transition matrix generation
-    toolbox.register("trans_mat", np.random.dirichlet, np.ones(STATES), STATES)
-    # Emission matrix generation
-    toolbox.register("emiss_mat", np.random.dirichlet, np.ones(SYMBOLS), STATES)
-    # Generate Individual from transition and matrix generator in cycle
-    toolbox.register(
-        "individual",
-        tools.initCycle,
-        creator.Individual,
-        (toolbox.trans_mat, toolbox.emiss_mat),
-    )
+    def __init__(self, discriminator, pool_size=None):
+        # Maximise fitness (amount it will fool discriminator)
+        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        # Individual is 2-tuple of (transition, emission) ndarrays
+        creator.create("Individual", tuple, fitness=creator.FitnessMax)
 
-    # Population generation
-    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+        self._discriminator = discriminator
+        # Set up multiprocessing pool
+        self._pool = multiprocessing.Pool(processes=pool_size) if pool_size else None
 
-    # Crossover
-    toolbox.register("mate", crossover)
-    # Mutation
-    toolbox.register("mutate", mutate, indpb=1 / (2 * STATES))
-    # Selection
-    toolbox.register("select", tools.selTournament, tournsize=2)
-    # Fitness evaluation
-    toolbox.register("evaluate", evaluate)
+        # Init toolbox
+        self.toolbox = base.Toolbox()
+        # Complete toolbox setup
+        self._setup_toolbox()
 
+    def _evaluate(self, ind):
+        # 1. Sample 0.5 x batch_size from "true" dist
+        # 2. Sample 0.5 x batch_size from ind dist
+        # 3. Train self._discriminator on batch
+        # 4. Return fitness proportional to training loss for batch
+        return (random.random(),)
 
-def main():
-    # Maximise fitness (amount it will fool discriminator)
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    # Individual is 2-tuple of (transition, emission) ndarrays
-    creator.create("Individual", tuple, fitness=creator.FitnessMax)
+    def _setup_toolbox(self):
+        # Register map to use multiprocessing pool
+        if self._pool:
+            self.toolbox.register("map", self._pool.map)
 
-    # Set up multiprocessing pool
-    pool = multiprocessing.Pool(processes=POOL_SIZE)
+        # Transition matrix generation
+        self.toolbox.register("trans_mat", np.random.dirichlet, np.ones(STATES), STATES)
+        # Emission matrix generation
+        self.toolbox.register(
+            "emiss_mat", np.random.dirichlet, np.ones(SYMBOLS), STATES
+        )
+        # Generate Individual from transition and matrix generator in cycle
+        self.toolbox.register(
+            "individual",
+            tools.initCycle,
+            creator.Individual,
+            (self.toolbox.trans_mat, self.toolbox.emiss_mat),
+        )
 
-    # Init toolbox
-    toolbox = base.Toolbox()
-    # Complete toolbox setup
-    setup_toolbox(toolbox, pool=pool)
+        # Population generation
+        self.toolbox.register(
+            "population", tools.initRepeat, list, self.toolbox.individual
+        )
 
-    # Create initial population
-    pop = toolbox.population(n=POP_SIZE)
+        # Crossover
+        self.toolbox.register("mate", crossover)
+        # Mutation
+        self.toolbox.register("mutate", mutate, indpb=1 / (2 * STATES))
+        # Selection
+        self.toolbox.register("select", tools.selTournament, tournsize=2)
+        # Fitness evaluation
+        self.toolbox.register("evaluate", self._evaluate)
 
-    ind1 = pop[0]
-    print(f"Ind 1:\n{ind1[0]}\n{ind1[1]}\n")
+    def run(self):
+        pop = self.toolbox.population(n=POP_SIZE)
 
-    (mut1,) = toolbox.mutate(ind1)
-    print(f"Mut 1:\n{mut1[0]}\n{mut1[1]}\n")
+        stats = tools.Statistics(key=lambda ind: ind.fitness.values)
+        stats.register("avg", np.mean)
+        stats.register("max", np.max)
 
-    stats = tools.Statistics(key=lambda ind: ind.fitness.values)
-    stats.register("avg", np.mean)
-    # stats.register("std", np.std)
-    # stats.register("min", np.min)
-    stats.register("max", np.max)
+        final_pop, _ = algorithms.eaMuPlusLambda(
+            pop,
+            self.toolbox,
+            mu=POP_SIZE,
+            lambda_=math.floor(0.5 * POP_SIZE),
+            cxpb=0.0,
+            mutpb=1.0,
+            ngen=50,
+            stats=stats,
+            verbose=True,
+        )
 
-    final_pop, _ = algorithms.eaMuPlusLambda(
-        pop,
-        toolbox,
-        mu=POP_SIZE,
-        lambda_=math.floor(0.5 * POP_SIZE),
-        cxpb=0.0,
-        mutpb=1.0,
-        ngen=50,
-        stats=stats,
-        verbose=True,
-    )
+        return final_pop
 
-    for i, ind in enumerate(final_pop):
-        print(f"Ind {i}:\n{ind_str(ind)}\n")
-
-    pool.close()
+    def cleanup(self):
+        self._pool.close()
 
 
 if __name__ == "__main__":
-    main()
+    ea = EA(None, pool_size=POOL_SIZE)
+    ea.run()

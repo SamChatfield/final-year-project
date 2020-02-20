@@ -3,7 +3,8 @@ import sys
 import numpy as np
 
 EXAMPLE_X = 2
-EXAMPLE_Y = np.array(['a', 'b', 'c'])
+EXAMPLE_Y = np.array(["a", "b", "c"])
+# fmt: off
 EXAMPLE_A = np.array([
     [0.5, 0.5],
     [0.3, 0.7],
@@ -12,23 +13,26 @@ EXAMPLE_B = np.array([
     [0.6, 0.4, 0.0],
     [0.0, 0.8, 0.2],
 ])
+# fmt: on
 EXAMPLE_S = np.array([1.0, 0.0])
 
 # TODO: Create HMMParams class to wrap [x, y, a, b, s]
 
 
 class HMM:
-    def __init__(self,
-                 x=EXAMPLE_X,
-                 y=EXAMPLE_Y,
-                 a=EXAMPLE_A,
-                 b=EXAMPLE_B,
-                 s=EXAMPLE_S,
-                 debug=False):
+    def __init__(
+        self,
+        x=EXAMPLE_X,
+        y=EXAMPLE_Y,
+        a=EXAMPLE_A,
+        b=EXAMPLE_B,
+        s=EXAMPLE_S,
+        debug=False,
+    ):
         # Parameter assertions
         assert a.shape == (x, x)
         assert b.shape == (x, y.size)
-        assert s.shape == (x, )
+        assert s.shape == (x,)
 
         # Parameters
         self.init_x = x
@@ -54,7 +58,7 @@ class HMM:
 
         self._current_state = np.random.choice(self.x, p=self.s)
         if self._debug:
-            print(f'Start:\t{self._current_state}\n')
+            print(f"Start:\t{self._current_state}\n")
 
     def simulate(self, n=1, reset_before=False):
         if reset_before:
@@ -65,7 +69,7 @@ class HMM:
 
         for _ in range(n):
             if self._debug:
-                print(f'Curr:\t{self._current_state}')
+                print(f"Curr:\t{self._current_state}")
 
             # Add current state to history of states
             states.append(self._current_state)
@@ -74,14 +78,14 @@ class HMM:
             p_em = self.b[self._current_state]
             o = np.random.choice(self.y, p=p_em)
             if self._debug:
-                print(f'Emit:\t{o}')
+                print(f"Emit:\t{o}")
             symbols.append(o)
 
             # Transition
             p_trans = self.a[self._current_state]
             ns = np.random.choice(self.x, p=p_trans)
             if self._debug:
-                print(f'Next:\t{ns}\n')
+                print(f"Next:\t{ns}\n")
             self._current_state = ns
 
         return (np.array(states), np.array(symbols))
@@ -117,7 +121,7 @@ class HMM:
         return alpha.sum()
 
 
-def random_hmm(x=2, y='abc', s=[1.0, 0.0]):
+def random_hmm(x=2, y="abc", s=[1.0, 0.0]):
     # Take X, Y and S as parameters
     # Generate random A and B (transition and emission matrices)
     # Return constructed instance of HMM
@@ -135,8 +139,8 @@ def random_hmm(x=2, y='abc', s=[1.0, 0.0]):
 def main(steps):
     h = HMM()
     l = h.simulate(steps)
-    print(''.join(l))
+    print("".join(l))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main(int(sys.argv[1]))

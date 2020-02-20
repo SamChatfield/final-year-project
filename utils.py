@@ -14,7 +14,7 @@ class HMMDataGenerator(keras.utils.Sequence):
         self._epoch_size = epoch_size
         self._batch_size = batch_size
         self._seq_len = seq_len
-        self._symbols = ''.join(self._real_hmm.y)
+        self._symbols = "".join(self._real_hmm.y)
 
         self._init_tokenizer()
 
@@ -42,7 +42,7 @@ class HMMDataGenerator(keras.utils.Sequence):
             rand_hmm.simulate(self._seq_len, reset_before=True)[1]
             for _ in range(num_rand_samples)
         ]
-        rand_samples = [''.join(s) for s in rand_samples]
+        rand_samples = ["".join(s) for s in rand_samples]
         rand_labels = np.zeros(num_rand_samples)
 
         # 3. Sample 0.5 x batch_size sequences from real_hmm
@@ -50,7 +50,7 @@ class HMMDataGenerator(keras.utils.Sequence):
             self._real_hmm.simulate(self._seq_len, reset_before=True)[1]
             for _ in range(num_real_samples)
         ]
-        real_samples = [''.join(s) for s in real_samples]
+        real_samples = ["".join(s) for s in real_samples]
         real_labels = np.ones(num_real_samples)
 
         # 4. Tokenise both sequences
@@ -77,10 +77,7 @@ class HMMDataGenerator(keras.utils.Sequence):
     def _encode_hmm_outputs(self, hmm_outputs):
         tokens = self._tokenizer.texts_to_sequences(hmm_outputs)
         tokens = np.array(tokens) - 1
-        onehot = keras.utils.to_categorical(
-            tokens,
-            num_classes=len(self._symbols)
-        )
+        onehot = keras.utils.to_categorical(tokens, num_classes=len(self._symbols))
         return onehot
 
     def input_shape(self):
@@ -92,18 +89,18 @@ def plot_model(model, to_file):
 
 
 def plot_acc(history, to_file=None, val=False):
-    plt.plot(history.history['accuracy'])
+    plt.plot(history.history["accuracy"])
     if val:
-        plt.plot(history.history['val_accuracy'])
+        plt.plot(history.history["val_accuracy"])
 
-    plt.title('Model Accuracy')
-    plt.ylabel('Accuracy')
-    plt.xlabel('Epoch')
+    plt.title("Model Accuracy")
+    plt.ylabel("Accuracy")
+    plt.xlabel("Epoch")
 
     if val:
-        plt.legend(['Train', 'Val'], loc='center right')
+        plt.legend(["Train", "Val"], loc="center right")
     else:
-        plt.legend(['Train'], loc='center right')
+        plt.legend(["Train"], loc="center right")
 
     if to_file:
         plt.savefig(to_file)
@@ -112,18 +109,18 @@ def plot_acc(history, to_file=None, val=False):
 
 
 def plot_loss(history, to_file=None, val=False):
-    plt.plot(history.history['loss'])
+    plt.plot(history.history["loss"])
     if val:
-        plt.plot(history.history['val_loss'])
+        plt.plot(history.history["val_loss"])
 
-    plt.title('Model Loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
+    plt.title("Model Loss")
+    plt.ylabel("Loss")
+    plt.xlabel("Epoch")
 
     if val:
-        plt.legend(['Train', 'Val'], loc='center right')
+        plt.legend(["Train", "Val"], loc="center right")
     else:
-        plt.legend(['Train'], loc='center right')
+        plt.legend(["Train"], loc="center right")
 
     if to_file:
         plt.savefig(to_file)
@@ -133,10 +130,10 @@ def plot_loss(history, to_file=None, val=False):
 
 def callbacks(model_name):
     model_checkpoint_cb = keras.callbacks.ModelCheckpoint(
-        f'models/weights-{model_name}.h5',
-        monitor='loss',
+        f"models/weights-{model_name}.h5",
+        monitor="loss",
         save_best_only=True,
-        save_weights_only=True
+        save_weights_only=True,
     )
 
     return [model_checkpoint_cb]

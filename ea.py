@@ -8,7 +8,7 @@ from deap import algorithms, base, creator, tools
 
 # POOL_SIZE = multiprocessing.cpu_count() // 2
 POOL_SIZE = 4
-print(f'Pool Size = {POOL_SIZE}')
+print(f"Pool Size = {POOL_SIZE}")
 STATES = 5
 SYMBOLS = 3
 POP_SIZE = 10
@@ -16,13 +16,13 @@ POP_SIZE = 10
 
 def ind_str(ind):
     t, e = ind
-    return f'{t}\n{e}\nFitness: {ind.fitness}'
+    return f"{t}\n{e}\nFitness: {ind.fitness}"
 
 
 def evaluate(ind):
     # Do CNN model training batch and take 1 - acc as fitness
     # TODO: Remove placeholder
-    return random.random(),
+    return (random.random(),)
 
 
 def mutate(ind, indpb):
@@ -44,7 +44,7 @@ def mutate(ind, indpb):
             ind[1][i] += mut
             ind[1][i] /= ind[1][i].sum()
 
-    return ind,
+    return (ind,)
 
 
 def crossover(ind1, ind2):
@@ -55,52 +55,42 @@ def crossover(ind1, ind2):
 
 def setup_toolbox(toolbox):
     # Transition matrix generation
-    toolbox.register(
-        'trans_mat',
-        np.random.dirichlet,
-        np.ones(STATES),
-        STATES
-    )
+    toolbox.register("trans_mat", np.random.dirichlet, np.ones(STATES), STATES)
     # Emission matrix generation
-    toolbox.register(
-        'emiss_mat',
-        np.random.dirichlet,
-        np.ones(SYMBOLS),
-        STATES
-    )
+    toolbox.register("emiss_mat", np.random.dirichlet, np.ones(SYMBOLS), STATES)
     # Generate Individual from transition and matrix generator in cycle
     toolbox.register(
-        'individual',
+        "individual",
         tools.initCycle,
         creator.Individual,
-        (toolbox.trans_mat, toolbox.emiss_mat)
+        (toolbox.trans_mat, toolbox.emiss_mat),
     )
 
     # Population generation
-    toolbox.register('population', tools.initRepeat, list, toolbox.individual)
+    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
     # Crossover
-    toolbox.register('mate', crossover)
+    toolbox.register("mate", crossover)
     # Mutation
-    toolbox.register('mutate', mutate, indpb=1/(2*STATES))
+    toolbox.register("mutate", mutate, indpb=1 / (2 * STATES))
     # Selection
-    toolbox.register('select', tools.selTournament, tournsize=2)
+    toolbox.register("select", tools.selTournament, tournsize=2)
     # Fitness evaluation
-    toolbox.register('evaluate', evaluate)
+    toolbox.register("evaluate", evaluate)
 
 
 def main():
     # Maximise fitness (amount it will fool discriminator)
-    creator.create('FitnessMax', base.Fitness, weights=(1.0,))
+    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     # Individual is 2-tuple of (transition, emission) ndarrays
-    creator.create('Individual', tuple, fitness=creator.FitnessMax)
+    creator.create("Individual", tuple, fitness=creator.FitnessMax)
 
     # Init toolbox
     toolbox = base.Toolbox()
 
     # Set up multiprocessing pool
     pool = multiprocessing.Pool(processes=POOL_SIZE)
-    toolbox.register('map', pool.map)
+    toolbox.register("map", pool.map)
 
     # Complete toolbox setup
     setup_toolbox(toolbox)
@@ -109,10 +99,10 @@ def main():
     pop = toolbox.population(n=POP_SIZE)
 
     ind1 = pop[0]
-    print(f'Ind 1:\n{ind1[0]}\n{ind1[1]}\n')
+    print(f"Ind 1:\n{ind1[0]}\n{ind1[1]}\n")
 
-    mut1, = toolbox.mutate(ind1)
-    print(f'Mut 1:\n{mut1[0]}\n{mut1[1]}\n')
+    (mut1,) = toolbox.mutate(ind1)
+    print(f"Mut 1:\n{mut1[0]}\n{mut1[1]}\n")
 
     stats = tools.Statistics(key=lambda ind: ind.fitness.values)
     stats.register("avg", np.mean)
@@ -124,19 +114,19 @@ def main():
         pop,
         toolbox,
         mu=POP_SIZE,
-        lambda_=math.floor(0.5*POP_SIZE),
+        lambda_=math.floor(0.5 * POP_SIZE),
         cxpb=0.0,
         mutpb=1.0,
         ngen=50,
         stats=stats,
-        verbose=True
+        verbose=True,
     )
 
     for i, ind in enumerate(final_pop):
-        print(f'Ind {i}:\n{ind_str(ind)}\n')
+        print(f"Ind {i}:\n{ind_str(ind)}\n")
 
     pool.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

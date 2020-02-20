@@ -19,8 +19,12 @@ def ind_str(ind):
     return f"{t}\n{e}\nFitness: {ind.fitness}"
 
 
-def evaluate(ind):
-    # Do CNN model training batch and take 1 - acc as fitness
+def evaluate(ind, discriminator):
+    # 1. Sample 0.5 x batch_size from "true" dist
+    # 2. Sample 0.5 x batch_size from ind dist
+    # 3. Train self._discriminator on batch
+    # 4. Return fitness proportional to training loss for batch
+    print(f"Batch Size: {discriminator._batch_size}")
     # TODO: Remove placeholder
     return (random.random(),)
 
@@ -71,13 +75,6 @@ class EA:
         # Complete toolbox setup
         self._setup_toolbox()
 
-    def _evaluate(self, ind):
-        # 1. Sample 0.5 x batch_size from "true" dist
-        # 2. Sample 0.5 x batch_size from ind dist
-        # 3. Train self._discriminator on batch
-        # 4. Return fitness proportional to training loss for batch
-        return (random.random(),)
-
     def _setup_toolbox(self):
         # Register map to use multiprocessing pool
         if self._pool:
@@ -109,7 +106,7 @@ class EA:
         # Selection
         self.toolbox.register("select", tools.selTournament, tournsize=2)
         # Fitness evaluation
-        self.toolbox.register("evaluate", self._evaluate)
+        self.toolbox.register("evaluate", evaluate, discriminator=self._discriminator)
 
     def run(self):
         pop = self.toolbox.population(n=POP_SIZE)

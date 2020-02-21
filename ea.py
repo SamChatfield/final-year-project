@@ -68,7 +68,7 @@ class EA:
         # Maximise fitness (amount it will fool discriminator)
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         # Individual is 2-tuple of (transition, emission) ndarrays
-        creator.create("Individual", tuple, fitness=creator.FitnessMax)
+        creator.create("Individual", tuple, fitness=creator.FitnessMin)
 
         self._discriminator = discriminator
         self._pop_size = pop_size
@@ -126,7 +126,7 @@ class EA:
 
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
         stats.register("avg", np.mean)
-        stats.register("max", np.max)
+        stats.register("min", np.min)
 
         final_pop, _ = algorithms.eaMuPlusLambda(
             pop,

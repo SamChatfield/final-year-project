@@ -8,13 +8,6 @@ from deap import algorithms, base, creator, tools
 
 import hmm
 
-# POOL_SIZE = multiprocessing.cpu_count() // 2
-POOL_SIZE = 4
-print(f"Pool Size = {POOL_SIZE}")
-STATES = 5
-SYMBOLS = 3
-POP_SIZE = 10
-
 
 def ind_str(ind):
     t, e = ind
@@ -36,26 +29,26 @@ def evaluate(ind, discriminator):
     metrics = discriminator._model.train_on_batch(X, y)
     # Metrics is numpy array with: [loss, accuracy]
 
-    # Return fitness proportional to training loss for batch
-    return (metrics[0],)
+    # Return fitness proportional to training accuracy for batch
+    return (metrics[1],)
 
 
-def mutate(ind, indpb):
+def mutate(ind, indpb, states, symbols):
     # Mutate each row in the transition and emission matrices with probability indpb
 
     # Transition matrix
-    for i in range(STATES):
+    for i in range(states):
         if random.random() < indpb:
             # Mutate
-            mut = np.random.dirichlet(np.ones(STATES))
+            mut = np.random.dirichlet(np.ones(states))
             ind[0][i] += mut
             ind[0][i] /= ind[0][i].sum()
 
     # Emission matrix
-    for i in range(STATES):
+    for i in range(states):
         if random.random() < indpb:
             # Mutate
-            mut = np.random.dirichlet(np.ones(SYMBOLS))
+            mut = np.random.dirichlet(np.ones(symbols))
             ind[1][i] += mut
             ind[1][i] /= ind[1][i].sum()
 
@@ -71,13 +64,17 @@ def crossover(ind1, ind2):
 class EA:
     # pylint: disable=no-member
 
-    def __init__(self, discriminator, pool_size=None):
+    def __init__(self, discriminator, pop_size=50, states=3, symbols=3, pool_size=None):
         # Maximise fitness (amount it will fool discriminator)
-        creator.create("FitnessMax", base.Fitness, weights=(1.0,))
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         # Individual is 2-tuple of (transition, emission) ndarrays
         creator.create("Individual", tuple, fitness=creator.FitnessMax)
 
         self._discriminator = discriminator
+        self._pop_size = pop_size
+        self._states = states
+        self._symbols = symbols
+        print(f"Discriminator metrics: {discriminator._model.metrics_names}")
         # Set up multiprocessing pool
         self._pool = multiprocessing.Pool(processes=pool_size) if pool_size else None
 
@@ -92,10 +89,12 @@ class EA:
             self.toolbox.register("map", self._pool.map)
 
         # Transition matrix generation
-        self.toolbox.register("trans_mat", np.random.dirichlet, np.ones(STATES), STATES)
+        self.toolbox.register(
+            "trans_mat", np.random.dirichlet, np.ones(self._states), self._states
+        )
         # Emission matrix generation
         self.toolbox.register(
-            "emiss_mat", np.random.dirichlet, np.ones(SYMBOLS), STATES
+            "emiss_mat", np.random.dirichlet, np.ones(self._symbols), self._states
         )
         # Generate Individual from transition and matrix generator in cycle
         self.toolbox.register(
@@ -113,14 +112,17 @@ class EA:
         # Crossover
         self.toolbox.register("mate", crossover)
         # Mutation
-        self.toolbox.register("mutate", mutate, indpb=1 / (2 * STATES))
+        mut_rate = 1 / (2 * self._states)
+        self.toolbox.register(
+            "mutate", mutate, indpb=mut_rate, states=self._states, symbols=self._symbols
+        )
         # Selection
         self.toolbox.register("select", tools.selTournament, tournsize=2)
         # Fitness evaluation
         self.toolbox.register("evaluate", evaluate, discriminator=self._discriminator)
 
     def run(self):
-        pop = self.toolbox.population(n=POP_SIZE)
+        pop = self.toolbox.population(n=self._pop_size)
 
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
         stats.register("avg", np.mean)
@@ -129,8 +131,8 @@ class EA:
         final_pop, _ = algorithms.eaMuPlusLambda(
             pop,
             self.toolbox,
-            mu=POP_SIZE,
-            lambda_=math.floor(0.5 * POP_SIZE),
+            mu=self._pop_size,
+            lambda_=math.floor(0.5 * self._pop_size),
             cxpb=0.0,
             mutpb=1.0,
             ngen=50,
@@ -146,5 +148,5 @@ class EA:
 
 
 if __name__ == "__main__":
-    ea = EA(None, pool_size=POOL_SIZE)
+    ea = EA(None)
     ea.run()

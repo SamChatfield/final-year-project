@@ -28,7 +28,9 @@ class HMMDataGenerator(keras.utils.Sequence):
 
     def __getitem__(self, index):
         # Generate rand_hmm
-        rand_hmm = hmm.random_hmm()
+        rand_hmm = hmm.random_hmm(
+            x=self._real_hmm.x, y=self._symbols, s=self._real_hmm.s
+        )
         return self.create_batch(rand_hmm)
 
     def create_batch(self, other_hmm):

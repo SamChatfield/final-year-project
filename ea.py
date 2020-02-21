@@ -6,6 +6,8 @@ from functools import partial
 import numpy as np
 from deap import algorithms, base, creator, tools
 
+import hmm
+
 # POOL_SIZE = multiprocessing.cpu_count() // 2
 POOL_SIZE = 4
 print(f"Pool Size = {POOL_SIZE}")
@@ -20,13 +22,22 @@ def ind_str(ind):
 
 
 def evaluate(ind, discriminator):
-    # 1. Sample 0.5 x batch_size from "true" dist
-    # 2. Sample 0.5 x batch_size from ind dist
-    # 3. Train self._discriminator on batch
-    # 4. Return fitness proportional to training loss for batch
-    print(f"Batch Size: {discriminator._batch_size}")
-    # TODO: Remove placeholder
-    return (random.random(),)
+    real_hmm = discriminator._real_hmm
+    data_gen = discriminator._train_data_generator
+
+    # Build HMM from individual
+    t_mat, e_mat = ind
+    ind_hmm = hmm.HMM(real_hmm.x, real_hmm.y, t_mat, e_mat, real_hmm.s)
+
+    data_gen = discriminator._train_data_generator
+    X, y = data_gen.create_batch(ind_hmm)
+
+    # Train discriminator on batch
+    metrics = discriminator._model.train_on_batch(X, y)
+    # Metrics is numpy array with: [loss, accuracy]
+
+    # Return fitness proportional to training loss for batch
+    return (metrics[0],)
 
 
 def mutate(ind, indpb):
@@ -130,7 +141,8 @@ class EA:
         return final_pop
 
     def cleanup(self):
-        self._pool.close()
+        if self._pool:
+            self._pool.close()
 
 
 if __name__ == "__main__":

@@ -11,20 +11,20 @@ POOL_SIZE = 4
 
 def init_real_hmm():
     # Set the fixed parameters of the "real" HMM
-    # x = 5
-    # y = "abc"
-    # s = [1.0, 0.0, 0.0, 0.0, 0.0]
+    x = 5
+    y = "abc"
+    s = [1.0, 0.0, 0.0, 0.0, 0.0]
 
     # Create "real" HMM with random transition and emission matrices
     # real_hmm = hmm.random_hmm(x, y, s)
-    real_hmm = hmm.random_hmm()
+    real_hmm = hmm.random_hmm(x, y, s)
 
     return real_hmm
 
 
 def init_discriminator(real_hmm):
     # Set training parameters
-    epochs = 1
+    epochs = 20
     epoch_size = 100
     batch_size = 100
     seq_len = 20
@@ -49,7 +49,8 @@ def main():
     discriminator = init_discriminator(real_hmm)
 
     # Initialise EA toolbox
-    ea = EA(discriminator, pool_size=POOL_SIZE)
+    # ea = EA(discriminator, pool_size=POOL_SIZE)
+    ea = EA(discriminator)
     # Run EA
     final_pop = ea.run()
     # Clean up EA

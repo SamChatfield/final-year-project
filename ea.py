@@ -128,6 +128,8 @@ class EA:
         stats.register("avg", np.mean)
         stats.register("min", np.min)
 
+        hof = tools.HallOfFame(10, similar=np.array_equal)
+
         final_pop, _ = algorithms.eaMuPlusLambda(
             pop,
             self.toolbox,
@@ -137,10 +139,11 @@ class EA:
             mutpb=1.0,
             ngen=50,
             stats=stats,
+            halloffame=hof,
             verbose=True,
         )
 
-        return final_pop
+        return final_pop, hof
 
     def cleanup(self):
         if self._pool:

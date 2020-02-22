@@ -21,7 +21,6 @@ class Discriminator:
         self._model = CNNModel(self._train_data_generator.input_shape())
 
     def initial_train(self, epochs):
-        print("\nPre-training discriminator:")
         if self._pool_size:
             self._model.fit_generator(
                 generator=self._train_data_generator,
@@ -33,4 +32,3 @@ class Discriminator:
             self._model.fit_generator(
                 generator=self._train_data_generator, epochs=epochs
             )
-        print()

@@ -136,6 +136,19 @@ def random_hmm(x=2, y="abc", s=[1.0, 0.0]):
     return rand_hmm
 
 
+def total_l2_diff(hmm1, hmm2):
+    # Row-by-row L2 norms for transition and emission matrices
+    t_row_l2 = np.linalg.norm(hmm1.a - hmm2.a, ord=2, axis=1)
+    e_row_l2 = np.linalg.norm(hmm1.b - hmm2.b, ord=2, axis=1)
+
+    # L2 norms summed over all rows of transition and emission matrices
+    t_sum_l2 = t_row_l2.sum()
+    e_sum_l2 = e_row_l2.sum()
+
+    # Return sum over both matrices
+    return t_sum_l2 + e_sum_l2
+
+
 def main(steps):
     h = HMM()
     l = h.simulate(steps)

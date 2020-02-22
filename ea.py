@@ -61,6 +61,69 @@ def crossover(ind1, ind2):
     pass
 
 
+def eaMuPlusLambda(
+    population,
+    toolbox,
+    mu,
+    lambda_,
+    cxpb,
+    mutpb,
+    ngen,
+    stats=None,
+    halloffame=None,
+    verbose=__debug__,
+):
+    """A modified version of deap.algorithms.eaMuPlusLambda.
+
+    The difference is that each generation _all_ individuals have their fitness
+    re-evaluated rather than only the new ones. This is because the fitness of
+    of the same individual will change from generation to generation because the
+    weights of the discriminator network will have changed.
+    """
+    logbook = tools.Logbook()
+    logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
+
+    # Evaluate the individuals with an invalid fitness
+    invalid_ind = population
+    fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+    for ind, fit in zip(invalid_ind, fitnesses):
+        ind.fitness.values = fit
+
+    if halloffame is not None:
+        halloffame.update(population)
+
+    record = stats.compile(population) if stats is not None else {}
+    logbook.record(gen=0, nevals=len(invalid_ind), **record)
+    if verbose:
+        print(logbook.stream)
+
+    # Begin the generational process
+    for gen in range(1, ngen + 1):
+        # Vary the population
+        offspring = algorithms.varOr(population, toolbox, lambda_, cxpb, mutpb)
+
+        # Evaluate the individuals with an invalid fitness
+        invalid_ind = population + offspring
+        fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
+        for ind, fit in zip(invalid_ind, fitnesses):
+            ind.fitness.values = fit
+
+        # Update the hall of fame with the generated individuals
+        if halloffame is not None:
+            halloffame.update(offspring)
+
+        # Select the next generation population
+        population[:] = toolbox.select(population + offspring, mu)
+
+        # Update the statistics with the new population
+        record = stats.compile(population) if stats is not None else {}
+        logbook.record(gen=gen, nevals=len(invalid_ind), **record)
+        if verbose:
+            print(logbook.stream)
+
+    return population, logbook
+
+
 class EA:
     # pylint: disable=no-member
 
@@ -130,11 +193,11 @@ class EA:
 
         hof = tools.HallOfFame(10, similar=np.array_equal)
 
-        final_pop, _ = algorithms.eaMuPlusLambda(
+        final_pop, _ = eaMuPlusLambda(
             pop,
             self.toolbox,
             mu=self._pop_size,
-            lambda_=math.floor(0.5 * self._pop_size),
+            lambda_=math.floor(0.25 * self._pop_size),
             cxpb=0.0,
             mutpb=1.0,
             ngen=50,

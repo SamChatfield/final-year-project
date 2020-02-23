@@ -137,7 +137,7 @@ class EA:
         self._pop_size = pop_size
         self._states = states
         self._symbols = symbols
-        print(f"Discriminator metrics: {discriminator._model.metrics_names}")
+
         # Set up multiprocessing pool
         self._pool = multiprocessing.Pool(processes=pool_size) if pool_size else None
 
@@ -184,23 +184,23 @@ class EA:
         # Fitness evaluation
         self.toolbox.register("evaluate", evaluate, discriminator=self._discriminator)
 
-    def run(self):
+    def run(self, gens, offpr, cxpb, mutpb):
         pop = self.toolbox.population(n=self._pop_size)
 
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
         stats.register("avg", np.mean)
         stats.register("min", np.min)
 
-        hof = tools.HallOfFame(10, similar=np.array_equal)
+        hof = tools.HallOfFame(maxsize=10, similar=np.array_equal)
 
         final_pop, _ = eaMuPlusLambda(
             pop,
             self.toolbox,
             mu=self._pop_size,
-            lambda_=math.floor(0.25 * self._pop_size),
-            cxpb=0.0,
-            mutpb=1.0,
-            ngen=50,
+            lambda_=math.floor(offpr * self._pop_size),
+            cxpb=cxpb,
+            mutpb=mutpb,
+            ngen=gens,
             stats=stats,
             halloffame=hof,
             verbose=True,

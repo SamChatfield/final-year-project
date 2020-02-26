@@ -56,9 +56,12 @@ def run(params):
     best_ind = deap.tools.selBest(final_pop, 1)[0]
     best_hmm = hmm.HMM(x, np.array(list(y)), best_ind[0], best_ind[1], np.array(s))
 
-    best_l2 = hmm.total_l2_diff(real_hmm, best_hmm)
+    rand_hmm = hmm.random_hmm(x, y, s)
 
-    return real_hmm, best_hmm, best_l2
+    best_l2 = hmm.total_l2_diff(real_hmm, best_hmm)
+    rand_l2 = hmm.total_l2_diff(real_hmm, rand_hmm)
+
+    return real_hmm, best_hmm, best_l2, rand_l2
 
 
 def main():

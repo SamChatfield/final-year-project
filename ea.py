@@ -22,7 +22,6 @@ def evaluate(ind, discriminator):
     t_mat, e_mat = ind
     ind_hmm = hmm.HMM(real_hmm.x, real_hmm.y, t_mat, e_mat, real_hmm.s)
 
-    data_gen = discriminator._train_data_generator
     X, y = data_gen.create_batch(ind_hmm)
 
     # Train discriminator on batch
@@ -184,16 +183,16 @@ class EA:
         # Fitness evaluation
         self.toolbox.register("evaluate", evaluate, discriminator=self._discriminator)
 
-    def run(self, gens, offpr, cxpb, mutpb):
+    def run(self, gens, offpr, cxpb, mutpb, use_hof=False):
         pop = self.toolbox.population(n=self._pop_size)
 
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
-        stats.register("avg", np.mean)
+        stats.register("mean", np.mean)
         stats.register("min", np.min)
 
-        hof = tools.HallOfFame(maxsize=10, similar=np.array_equal)
+        hof = tools.HallOfFame(maxsize=10, similar=np.array_equal) if use_hof else None
 
-        final_pop, _ = eaMuPlusLambda(
+        final_pop, logbook = eaMuPlusLambda(
             pop,
             self.toolbox,
             mu=self._pop_size,
@@ -206,7 +205,7 @@ class EA:
             verbose=True,
         )
 
-        return final_pop, hof
+        return final_pop, hof, logbook
 
     def cleanup(self):
         if self._pool:

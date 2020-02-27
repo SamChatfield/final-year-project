@@ -17,9 +17,9 @@ DEFAULT_PARAMS = {
     "epoch_size": 500,
     "batch_size": 200,
     "seq_len": 20,
-    "pop_size": 50,
-    "gens": 50,
-    "offspring_prop": 0.25,
+    "pop_size": 25,
+    "gens": 30,
+    "offspring_prop": 1.0,
     "cx_prob": 0.0,
     "mut_prob": 1.0,
     # Implementation Parameters
@@ -56,7 +56,6 @@ def run(param_subset):
         params["batch_size"],
         params["seq_len"],
         pool_size=params["_pool_size"],
-        verbose=2,
     )
 
     print(f"Pre-training discriminator...")
@@ -91,6 +90,7 @@ def experiment(params, runs):
         mean_fitnesses.append(logbook.select("mean"))
         best_l2s.append(best_l2)
         rand_l2s.append(rand_l2)
+        print(f"Best L2: {best_l2}, Rand L2: {rand_l2}")
 
     exp_data = {
         "params": params,
@@ -99,7 +99,7 @@ def experiment(params, runs):
         "rand_l2s": rand_l2s,
     }
 
-    exp_file = f'experiments/exp_{datetime.now().strftime("%y%m%d-%H%M%S")}.json'
+    exp_file = f'experiments/exp_{datetime.now().strftime("%y%m%d-%H%M%S%f")}.json'
     with open(exp_file, "w") as f:
         json.dump(exp_data, f, indent=4)
 

@@ -85,6 +85,8 @@ def run(param_subset):
 
 
 def experiment(params, runs):
+    all_params = {**DEFAULT_PARAMS, **params}
+
     mean_fitnesses = []
     best_l2s = []
     rand_l2s = []
@@ -102,7 +104,7 @@ def experiment(params, runs):
         print(f"Best L2: {best_l2}, Rand L2: {rand_l2}")
 
     exp_data = {
-        "params": params,
+        "params": all_params,
         "mean_fitnesses": mean_fitnesses,
         "best_l2s": best_l2s,
         "rand_l2s": rand_l2s,

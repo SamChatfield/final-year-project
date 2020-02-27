@@ -126,7 +126,18 @@ def eaMuPlusLambda(
 class EA:
     # pylint: disable=no-member
 
-    def __init__(self, discriminator, pop_size=50, states=3, symbols=3, pool_size=None):
+    def __init__(
+        self,
+        discriminator,
+        pop_size,
+        states,
+        symbols,
+        offpr,
+        cxpb,
+        mutpb,
+        mut_rate,
+        pool_size=None,
+    ):
         # Maximise fitness (amount it will fool discriminator)
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         # Individual is 2-tuple of (transition, emission) ndarrays
@@ -136,6 +147,10 @@ class EA:
         self._pop_size = pop_size
         self._states = states
         self._symbols = symbols
+        self._offpr = offpr
+        self._cxpb = cxpb
+        self._mutpb = mutpb
+        self._mut_rate = mut_rate
 
         # Set up multiprocessing pool
         self._pool = multiprocessing.Pool(processes=pool_size) if pool_size else None
@@ -174,7 +189,8 @@ class EA:
         # Crossover
         self.toolbox.register("mate", crossover)
         # Mutation
-        mut_rate = 1 / (2 * self._states)
+        # If mutation rate is None then default to 1/N where N is number of genes
+        mut_rate = 1 / (2 * self._states) if not self._mut_rate else self._mut_rate
         self.toolbox.register(
             "mutate", mutate, indpb=mut_rate, states=self._states, symbols=self._symbols
         )
@@ -183,7 +199,7 @@ class EA:
         # Fitness evaluation
         self.toolbox.register("evaluate", evaluate, discriminator=self._discriminator)
 
-    def run(self, gens, offpr, cxpb, mutpb, use_hof=False):
+    def run(self, gens, use_hof=False):
         pop = self.toolbox.population(n=self._pop_size)
 
         stats = tools.Statistics(key=lambda ind: ind.fitness.values)
@@ -196,9 +212,9 @@ class EA:
             pop,
             self.toolbox,
             mu=self._pop_size,
-            lambda_=math.floor(offpr * self._pop_size),
-            cxpb=cxpb,
-            mutpb=mutpb,
+            lambda_=math.floor(self._offpr * self._pop_size),
+            cxpb=self._cxpb,
+            mutpb=self._mutpb,
             ngen=gens,
             stats=stats,
             halloffame=hof,

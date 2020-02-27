@@ -22,6 +22,7 @@ DEFAULT_PARAMS = {
     "offspring_prop": 1.0,
     "cx_prob": 0.0,
     "mut_prob": 1.0,
+    "mut_rate": None,  # None - default to 1/N where N is number of genes
     # Implementation Parameters
     "_pool_size": 4,
 }
@@ -33,6 +34,7 @@ def param_assert(params):
     assert 0.0 <= params["offspring_prop"] <= 1.0
     assert 0.0 <= params["cx_prob"] <= 1.0
     assert 0.0 <= params["mut_prob"] <= 1.0
+    assert (params["mut_rate"] is None) or (0.0 <= params["mut_rate"] <= 1.0)
 
 
 def run(param_subset):
@@ -62,12 +64,19 @@ def run(param_subset):
     acc = d.initial_train(params["epochs"])
     print(f"Pre-trained discriminiator accuracy: {acc}")
 
-    g = EA(d, params["pop_size"], states=x, symbols=len(y))
+    g = EA(
+        discriminator=d,
+        pop_size=params["pop_size"],
+        states=x,
+        symbols=len(y),
+        offpr=params["offspring_prop"],
+        cxpb=params["cx_prob"],
+        mutpb=params["mut_prob"],
+        mut_rate=params["mut_rate"],
+    )
 
     print(f"Running generator...")
-    final_pop, _, logbook = g.run(
-        params["gens"], params["offspring_prop"], params["cx_prob"], params["mut_prob"],
-    )
+    final_pop, _, logbook = g.run(params["gens"])
 
     best_ind = deap.tools.selBest(final_pop, 1)[0]
     best_hmm = hmm.HMM(x, np.array(list(y)), best_ind[0], best_ind[1], np.array(s))

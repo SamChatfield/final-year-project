@@ -154,10 +154,49 @@ def CNNModel5(input_shape):
     return model
 
 
+# Even larger layers
+def CNNModel6(input_shape):
+    model = Sequential(
+        [
+            # Conv 1
+            Conv1D(256, 3, input_shape=input_shape),
+            Activation("relu"),
+            MaxPooling1D(),
+            # Conv 2
+            Conv1D(256, 3),
+            Activation("relu"),
+            GlobalMaxPooling1D(),
+            # Dense 1
+            Dense(512),
+            Activation("relu"),
+            # Dense 2
+            Dense(512),
+            Activation("relu"),
+            # Dense 3
+            Dense(512),
+            Activation("relu"),
+            # Dense 4
+            Dense(512),
+            Activation("relu"),
+            # Dense 5
+            Dense(512),
+            Activation("relu"),
+            # Output
+            Dense(1),
+            Activation("sigmoid"),
+        ]
+    )
+
+    model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
+
+    return model
+
+
 MODELS = {
     "CNNModel": CNNModel,
     "CNNModel2": CNNModel2,
     "CNNModel3": CNNModel3,
     "CNNModel4": CNNModel4,
     "CNNModel5": CNNModel5,
+    "CNNModel6": CNNModel6,
 }

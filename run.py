@@ -10,6 +10,8 @@ from discriminator import Discriminator
 from ea import EA
 
 DEFAULT_PARAMS = {
+    # Discriminator CNN model
+    "d_model": "CNNModel3",
     # Algorithm Parameters
     "states": 3,
     "symbols": 5,
@@ -57,6 +59,7 @@ def run(param_subset):
         params["epoch_size"],
         params["batch_size"],
         params["seq_len"],
+        model=params["d_model"],
         pool_size=params["_pool_size"],
     )
 

@@ -11,7 +11,7 @@ class Discriminator:
         epoch_size,
         batch_size,
         sequence_length,
-        model=cnn.CNNModel3,
+        model="CNNModel3",
         pool_size=None,
         verbose=0,
     ):
@@ -26,7 +26,7 @@ class Discriminator:
             self._real_hmm, self._epoch_size, self._batch_size, self._sequence_length
         )
 
-        self._model = model(self._train_data_generator.input_shape())
+        self._model = cnn.MODELS[model](self._train_data_generator.input_shape())
 
     def initial_train(self, epochs):
         if self._pool_size:

@@ -32,7 +32,7 @@ def evaluate(ind, discriminator):
     return (metrics[1],)
 
 
-def mutate(ind, indpb, states, symbols):
+def uniform_mutate(ind, indpb, states, symbols):
     # Mutate each row in the transition and emission matrices with probability indpb
 
     # Transition matrix
@@ -40,6 +40,7 @@ def mutate(ind, indpb, states, symbols):
         if random.random() < indpb:
             # Mutate
             mut = np.random.dirichlet(np.ones(states))
+            # Add to existing row and re-normalise
             ind[0][i] += mut
             ind[0][i] /= ind[0][i].sum()
 
@@ -48,7 +49,34 @@ def mutate(ind, indpb, states, symbols):
         if random.random() < indpb:
             # Mutate
             mut = np.random.dirichlet(np.ones(symbols))
+            # Add to existing row and re-normalise
             ind[1][i] += mut
+            ind[1][i] /= ind[1][i].sum()
+
+    return (ind,)
+
+
+def gaussian_mutate(ind, indpb, states, symbols, scale=0.1):
+    # Mutate each row in the transition and emission matrices with probability indpb
+
+    # Transition matrix
+    for i in range(states):
+        if random.random() < indpb:
+            # Mutate
+            mut = np.random.normal(loc=0.0, scale=scale, size=states)
+            # Add to existing row, apply bounds, and re-normalise
+            ind[0][i] += mut
+            ind[0][i] = np.minimum(np.maximum(ind[0][i], 0.0), 1.0)
+            ind[0][i] /= ind[0][i].sum()
+
+    # Emission matrix
+    for i in range(states):
+        if random.random() < indpb:
+            # Mutate
+            mut = np.random.normal(loc=0.0, scale=scale, size=symbols)
+            # Add to existing row, apply bounds, and re-normalise
+            ind[1][i] += mut
+            ind[1][i] = np.minimum(np.maximum(ind[1][i], 0.0), 1.0)
             ind[1][i] /= ind[1][i].sum()
 
     return (ind,)
@@ -134,6 +162,7 @@ class EA:
         symbols,
         offpr,
         cxpb,
+        mut_fn,
         mutpb,
         mut_rate,
         pool_size=None,
@@ -149,6 +178,7 @@ class EA:
         self._symbols = symbols
         self._offpr = offpr
         self._cxpb = cxpb
+        self._mut_fn = MUT_FUNCS[mut_fn]
         self._mutpb = mutpb
         self._mut_rate = mut_rate
 
@@ -192,7 +222,11 @@ class EA:
         # If mutation rate is None then default to 1/N where N is number of genes
         mut_rate = 1 / (2 * self._states) if not self._mut_rate else self._mut_rate
         self.toolbox.register(
-            "mutate", mutate, indpb=mut_rate, states=self._states, symbols=self._symbols
+            "mutate",
+            self._mut_fn,
+            indpb=mut_rate,
+            states=self._states,
+            symbols=self._symbols,
         )
         # Selection
         self.toolbox.register("select", tools.selTournament, tournsize=2)
@@ -227,6 +261,11 @@ class EA:
         if self._pool:
             self._pool.close()
 
+
+MUT_FUNCS = {
+    "uniform": uniform_mutate,
+    "gaussian": gaussian_mutate,
+}
 
 if __name__ == "__main__":
     ea = EA(None)

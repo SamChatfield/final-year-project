@@ -11,7 +11,7 @@ from ea import EA
 
 DEFAULT_PARAMS = {
     # Discriminator CNN model
-    "d_model": "CNNModel3",
+    "model": "CNNModel3",
     # Algorithm Parameters
     "states": 3,
     "symbols": 5,
@@ -23,6 +23,7 @@ DEFAULT_PARAMS = {
     "gens": 30,
     "offspring_prop": 1.0,
     "cx_prob": 0.0,
+    "mut_fn": "uniform",
     "mut_prob": 1.0,
     "mut_rate": None,  # None - default to 1/N where N is number of genes
     # Implementation Parameters
@@ -59,11 +60,11 @@ def run(param_subset):
         params["epoch_size"],
         params["batch_size"],
         params["seq_len"],
-        model=params["d_model"],
+        model=params["model"],
         pool_size=params["_pool_size"],
     )
 
-    print(f"Pre-training discriminator...")
+    print("Pre-training discriminator...")
     accs = d.initial_train(params["epochs"])
     acc = accs[-1]
     print(f"Pre-trained discriminiator accuracy: {acc}")
@@ -75,11 +76,12 @@ def run(param_subset):
         symbols=len(y),
         offpr=params["offspring_prop"],
         cxpb=params["cx_prob"],
+        mut_fn=params["mut_fn"],
         mutpb=params["mut_prob"],
         mut_rate=params["mut_rate"],
     )
 
-    print(f"Running generator...")
+    print("Running generator...")
     final_pop, _, logbook = g.run(params["gens"])
 
     best_ind = deap.tools.selBest(final_pop, 1)[0]

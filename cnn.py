@@ -10,15 +10,6 @@ from keras.layers import (
 from keras.models import Sequential
 
 
-MODELS = {
-    "CNNModel": CNNModel,
-    "CNNModel2": CNNModel2,
-    "CNNModel3": CNNModel3,
-    "CNNModel4": CNNModel4,
-    "CNNModel5": CNNModel5,
-}
-
-
 def CNNModel(input_shape):
     model = Sequential(
         [
@@ -143,15 +134,15 @@ def CNNModel5(input_shape):
             # Dense 1
             Dense(256),
             Activation("relu"),
-            Dropout(0.5),
+            Dropout(0.2),
             # Dense 2
             Dense(256),
             Activation("relu"),
-            Dropout(0.5),
+            Dropout(0.2),
             # Dense 3
             Dense(256),
             Activation("relu"),
-            Dropout(0.5),
+            Dropout(0.2),
             # Output
             Dense(1),
             Activation("sigmoid"),
@@ -161,3 +152,12 @@ def CNNModel5(input_shape):
     model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
 
     return model
+
+
+MODELS = {
+    "CNNModel": CNNModel,
+    "CNNModel2": CNNModel2,
+    "CNNModel3": CNNModel3,
+    "CNNModel4": CNNModel4,
+    "CNNModel5": CNNModel5,
+}

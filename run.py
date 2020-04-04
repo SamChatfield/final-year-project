@@ -8,6 +8,7 @@ import numpy as np
 import hmm
 from discriminator import Discriminator
 from ea import EA
+import random_search
 
 DEFAULT_PARAMS = {
     # Discriminator CNN model
@@ -23,11 +24,12 @@ DEFAULT_PARAMS = {
     "gens": 30,
     "offspring_prop": 1.0,
     "cx_prob": 0.0,
-    "mut_fn": "uniform",
+    "mut_fn": "gaussian",
     "mut_prob": 1.0,
     "mut_rate": None,  # None - default to 1/N where N is number of genes
     # Implementation Parameters
     "_pool_size": 4,
+    "_random_search": False,  # Also run an elitist random search over #gens to compare performance
 }
 
 
@@ -87,27 +89,45 @@ def run(param_subset):
     best_ind = deap.tools.selBest(final_pop, 1)[0]
     best_hmm = hmm.HMM(x, np.array(list(y)), best_ind[0], best_ind[1], np.array(s))
 
-    return real_hmm, best_hmm, rand_hmm, logbook
+    if params["_random_search"]:
+        print("Running random search benchmark...")
+        rs_best_hmm, rs_best_acc = random_search.run(
+            d, params["states"], params["symbols"], params["gens"]
+        )
+    else:
+        rs_best_hmm, rs_best_acc = None, None
+
+    return real_hmm, best_hmm, rand_hmm, rs_best_hmm, logbook
 
 
 def experiment(params, runs):
     all_params = {**DEFAULT_PARAMS, **params}
+    do_rand_search = params["_random_search"]
 
     mean_fitnesses = []
     best_l2s = []
     rand_l2s = []
+    if do_rand_search:
+        rs_l2s = []
 
     for i in range(runs):
         print(f"Run {i+1}")
-        real_hmm, best_hmm, rand_hmm, logbook = run(params)
+        real_hmm, best_hmm, rand_hmm, rs_best_hmm, logbook = run(params)
 
         best_l2 = hmm.total_l2_diff(real_hmm, best_hmm)
         rand_l2 = hmm.total_l2_diff(real_hmm, rand_hmm)
+        if do_rand_search:
+            rs_l2 = hmm.total_l2_diff(real_hmm, rs_best_hmm)
 
         mean_fitnesses.append(logbook.select("mean"))
         best_l2s.append(best_l2)
         rand_l2s.append(rand_l2)
-        print(f"Best L2: {best_l2}, Rand L2: {rand_l2}")
+        extra_msg = ""
+        if do_rand_search:
+            rs_l2s.append(rs_l2)
+            extra_msg = f", RandSearch L2: {rs_l2}"
+
+        print(f"Best L2: {best_l2}, Rand L2: {rand_l2}{extra_msg}")
 
     exp_data = {
         "params": all_params,
@@ -115,6 +135,8 @@ def experiment(params, runs):
         "best_l2s": best_l2s,
         "rand_l2s": rand_l2s,
     }
+    if do_rand_search:
+        exp_data["rs_l2s"] = rs_l2s
 
     exp_file = f'experiments/exp_{datetime.now().strftime("%y%m%d-%H%M%S%f")}.json'
     with open(exp_file, "w") as f:

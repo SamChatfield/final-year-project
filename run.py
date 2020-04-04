@@ -14,22 +14,22 @@ DEFAULT_PARAMS = {
     # Discriminator CNN model
     "model": "CNNModel3",
     # Algorithm Parameters
-    "states": 3,
+    "states": 5,
     "symbols": 5,
     "epochs": 10,
     "epoch_size": 500,
     "batch_size": 200,
     "seq_len": 20,
     "pop_size": 25,
-    "gens": 30,
+    "gens": 50,
     "offspring_prop": 1.0,
     "cx_prob": 0.0,
-    "mut_fn": "gaussian",
+    "mut_fn": "uniform",
     "mut_prob": 1.0,
     "mut_rate": None,  # None - default to 1/N where N is number of genes
     # Implementation Parameters
     "_pool_size": 4,
-    "_random_search": False,  # Also run an elitist random search over #gens to compare performance
+    "_random_search": True,  # Also run an elitist random search over #gens to compare performance
 }
 
 
@@ -102,7 +102,7 @@ def run(param_subset):
 
 def experiment(params, runs):
     all_params = {**DEFAULT_PARAMS, **params}
-    do_rand_search = params["_random_search"]
+    do_rand_search = all_params["_random_search"]
 
     mean_fitnesses = []
     best_l2s = []

@@ -45,5 +45,6 @@ class Discriminator:
             )
 
         acc_history = history.history["accuracy"]
+        loss_history = history.history["loss"]
 
-        return acc_history
+        return acc_history, loss_history

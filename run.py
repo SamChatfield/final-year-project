@@ -67,9 +67,10 @@ def run(param_subset):
     )
 
     print("Pre-training discriminator...")
-    accs = d.initial_train(params["epochs"])
+    accs, losses = d.initial_train(params["epochs"])
     acc = accs[-1]
-    print(f"Pre-trained discriminiator accuracy: {acc}")
+    loss = losses[-1]
+    print(f"Pre-trained discriminiator accuracy: {acc}, loss: {loss}")
 
     g = EA(
         discriminator=d,

@@ -266,7 +266,3 @@ MUT_FUNCS = {
     "uniform": uniform_mutate,
     "gaussian": gaussian_mutate,
 }
-
-if __name__ == "__main__":
-    ea = EA(None)
-    ea.run()
